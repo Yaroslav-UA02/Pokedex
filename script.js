@@ -134,17 +134,20 @@ function showDetails(id) {
   }
   const detail = document.getElementById("detail_content");
   detail.innerHTML = `
-    <div class="detail-header ${pokemon.types[0]}-bg"><h2>${pokemon.name}</h2></div>
-    <img class="detail-img" src="${pokemon.image}" alt="${pokemon.name}">
-    <div class="detail-types">${typeHTML}</div>
-    <div class="detail-stats">
-      <div class="stat-box">❤️ HP: ${pokemon.hp}</div>
-      <div class="stat-box">💪 Attack: ${pokemon.attack}</div>
-    </div>
-    <p class="description">${pokemon.description}</p>
-    <p class="pkm-id">#${pokemon.id}</p>`;
-  document.getElementById("detail_view_dialog").classList.remove("d_none");
-}
+  <div class="detail-header ${pokemon.types[0]}-bg"><h2>${pokemon.name}</h2></div>
+  <img class="detail-img" src="${pokemon.image}" alt="${pokemon.name}">
+  <div class="detail-types">${typeHTML}</div>
+  <div class="detail-stats">
+    <div class="stat-box">❤️ HP: ${pokemon.hp}</div>
+    <div class="stat-box">💪 Attack: ${pokemon.attack}</div>
+  </div>
+  <p class="description">${pokemon.description}</p>
+  <p class="pkm-id">#${pokemon.id}</p>
+  <div class="nav-buttons">
+    <button onclick="navigatePokemon(${pokemon.id}, -1)">←</button>
+    <button onclick="navigatePokemon(${pokemon.id}, 1)">→</button>
+  </div>
+`;
 
 function closeDialog() {
   document.getElementById("detail_view_dialog").classList.add("d_none");
@@ -173,3 +176,21 @@ window.onload = function () {
   const button = document.getElementById('load-more');
   button.addEventListener('click', loadPokemons);
 };
+
+function navigatePokemon(currentId, direction) {
+  let currentIndex = -1;
+
+  for (let i = 0; i < allPokemons.length; i++) {
+    if (allPokemons[i].id === currentId) {
+      currentIndex = i;
+      break;
+    }
+  }
+
+  const newIndex = currentIndex + direction;
+
+  if (newIndex >= 0 && newIndex < allPokemons.length) {
+    const nextPokemon = allPokemons[newIndex];
+    showDetails(nextPokemon.id);
+  }
+}
