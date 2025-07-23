@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Pokedex</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body onload="loadAndShowPkm()">
+
+  <div id="loading" class="loading-screen d_none">
+    <div class="loading-icon">⚡</div>
+    <p>Loading Pokémons...</p>
+  </div>
+
+  <header class="main-header">
+    <div class="logo">
+      <i class="fa-solid fa-dragon"></i>
+      <h1>Pokédex</h1>
+    </div>
+    <input type="text" placeholder="Search..." oninput="filterPokemon(this.value)">
+  </header>
+
+  <main class="main-content">
+    <section id="content" class="pokemon-container"></section>
+  </main>
+
+  <div onclick="closeDialog()" id="detail_view_dialog" class="bg_overlay d_none">
+    <div class="detail-card" id="detail_content"></div>
+  </div>
+
+  <footer class="main-footer">
+    <div class="footer-content">
+      <img src="img/pokedex.png" alt="Logo" height="50">
+      <p>© 2025 Yaroslav Bilyavskyi</p>
+    </div>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
