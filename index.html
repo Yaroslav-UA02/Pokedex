@@ -5,6 +5,7 @@
   <title>Pokedex</title>
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="icon" href="./icon/81717987-83b84000-947b-11ea-9ac9-5ad1d59adf7a.png" type="image/x-icon">
 </head>
 <body onload="loadAndShowPkm()">
 
@@ -13,28 +14,33 @@
     <p>Loading Pokémons...</p>
   </div>
 
-  <header class="main-header">
-    <div class="logo">
-      <i class="fa-solid fa-dragon"></i>
-      <h1>Pokédex</h1>
-    </div>
-    <input type="text" placeholder="Search..." oninput="filterPokemon(this.value)">
-  </header>
-
+  <div class="container">
+    <header class="main-header">
+      <div class="logo">
+        <i class="fa-solid fa-dragon"></i>
+        <h1>Pokédex</h1>
+      </div>
+      <input type="text" placeholder="Search..." oninput="filterPokemon(this.value)">
+    </header>
+  
   <main class="main-content">
     <section id="content" class="pokemon-container"></section>
-  </main>
-
-  <div onclick="closeDialog()" id="detail_view_dialog" class="bg_overlay d_none">
-    <div class="detail-card" id="detail_content"></div>
-  </div>
-
-  <footer class="main-footer">
-    <div class="footer-content">
-      <img src="img/pokedex.png" alt="Logo" height="50">
-      <p>© 2025 Yaroslav Bilyavskyi</p>
+    <div class="load-more-container">
+    <button id="load-more">Load More</button>
     </div>
-  </footer>
+  </main>
+  
+    <div onclick="closeDialog()" id="detail_view_dialog" class="bg_overlay d_none">
+      <div class="detail-card" id="detail_content"></div>
+    </div>
+  
+    <footer class="main-footer">
+      <div class="footer-content">
+        <img src="img/pokedex.png" alt="Logo" height="50">
+        <p>© 2025 Yaroslav Bilyavskyi</p>
+      </div>
+    </footer>
+  </div>
 
   <script src="script.js"></script>
 </body>

@@ -10,126 +10,139 @@ const typeIcons = {
   fairy: "✨"
 };
 
-let allPokemonData = [];
+let allPokemons = [];
+let offset = 0;
+const limit = 20;
+let currentSearch = "";
 
-function loadAndShowPkm() {
-  fetch("https://pokeapi.co/api/v2/pokemon?limit=25")
-    .then((response) => response.json())
-    .then((data) => {
-      const requests = [];
-      for (let i = 0; i < data.results.length; i++) {
-        const url = data.results[i].url;
-        requests.push(fetch(url).then((res) => res.json()));
-      }
-      Promise.all(requests).then((pokemonArray) => {
-        for (let i = 0; i < pokemonArray.length; i++) {
-          const p = pokemonArray[i];
-          const types = [];
-          for (let j = 0; j < p.types.length; j++) {
-            types.push(p.types[j].type.name);
-          }
-          let hp = 0;
-          let attack = 0;
-          for (let j = 0; j < p.stats.length; j++) {
-            if (p.stats[j].stat.name === "hp") {
-              hp = p.stats[j].base_stat;
-            }
-            if (p.stats[j].stat.name === "attack") {
-              attack = p.stats[j].base_stat;
-            }
-          }
-          const pokemon = {
-            id: p.id,
-            name: capitalize(p.name),
-            types: types,
-            hp: hp,
-            attack: attack,
-            image: p.sprites.other["official-artwork"].front_default,
-            description: `This is ${capitalize(p.name)}, a Pokémon of type(s): ${types.join(", ")}.`
-          };
-          allPokemonData.push(pokemon);
-        }
-        renderPkmCards(allPokemonData);
-      });
-    })
-    .catch((error) => {
-      console.log("Error loading Pokémon:", error);
-    });
+async function loadPokemons() {
+  showLoadingSpinner();
+  const pokemonList = await fetchPokemonList();
+  const pokemonData = await fetchPokemonDetails(pokemonList);
+  setTimeout(function () {
+    addPokemonsToList(pokemonData);
+    renderCurrentList();
+    hideLoadingSpinner();
+  }, 3000);
 }
 
-function renderPkmCards(pokeArray) {
+async function fetchPokemonList() {
+  const url = `https://pokeapi.co/api/v2/pokemon?limit=${limit}&offset=${offset}`;
+  const response = await fetch(url);
+  const data = await response.json();
+  offset += limit;
+  return data.results;
+}
+
+async function fetchPokemonDetails(pokemonList) {
+  const detailedList = [];
+  for (let index = 0; index < pokemonList.length; index++) {
+    const pokemonURL = pokemonList[index].url;
+    const response = await fetch(pokemonURL);
+    const data = await response.json();
+    const parsed = parsePokemon(data);
+    detailedList.push(parsed);
+  }
+  return detailedList;
+}
+
+function parsePokemon(data) {
+  const types = [];
+  let hp = 0;
+  let attack = 0;
+  for (let statIndex = 0; statIndex < data.stats.length; statIndex++) {
+    const stat = data.stats[statIndex];
+    if (stat.stat.name === "hp") hp = stat.base_stat;
+    if (stat.stat.name === "attack") attack = stat.base_stat;
+  }
+  for (let t = 0; t < data.types.length; t++) {
+    types.push(data.types[t].type.name);
+  }
+  return {
+    id: data.id,
+    name: capitalize(data.name),
+    types: types,
+    hp: hp,
+    attack: attack,
+    image: data.sprites.other["official-artwork"].front_default,
+    description: `This is ${capitalize(data.name)}, a Pokémon of type(s): ${types.join(", ")}.`
+  };
+}
+
+function addPokemonsToList(newPokemons) {
+  for (let i = 0; i < newPokemons.length; i++) {
+    allPokemons.push(newPokemons[i]);
+  }
+}
+
+function renderCurrentList() {
+  if (currentSearch.length >= 3) {
+    filterPokemon(currentSearch);
+  } else {
+    renderPokemonCards(allPokemons);
+  }
+}
+
+function renderPokemonCards(pokemonArray) {
   const container = document.getElementById("content");
   container.innerHTML = "";
-
-  for (let i = 0; i < pokeArray.length; i++) {
-    const pkm = pokeArray[i];
-
-    let typesHTML = "";
-    for (let j = 0; j < pkm.types.length; j++) {
-      const type = pkm.types[j];
+  for (let index = 0; index < pokemonArray.length; index++) {
+    const pokemon = pokemonArray[index];
+    let typeHTML = "";
+    for (let t = 0; t < pokemon.types.length; t++) {
+      const type = pokemon.types[t];
       const icon = typeIcons[type] || type;
-      typesHTML += `<span class="type ${type}">${icon}</span>`;
+      typeHTML += `<span class="type ${type}">${icon}</span>`;
     }
-
     container.innerHTML += `
-      <div class="card" onclick="showDetails(${pkm.id})">
-        <h4>#${pkm.id} ${pkm.name}</h4>
-        <div class="image-box"><img src="${pkm.image}" alt="${pkm.name}" /></div>
-        <div class="types">${typesHTML}</div>
-      </div>
-    `;
+      <div class="card" onclick="showDetails(${pokemon.id})">
+        <h4>#${pokemon.id} ${pokemon.name}</h4>
+        <div class="image-box"><img src="${pokemon.image}" alt="${pokemon.name}"></div>
+        <div class="types">${typeHTML}</div>
+      </div>`;
   }
 }
 
 function filterPokemon(query) {
-  const search = query.toLowerCase();
+  currentSearch = query.toLowerCase().trim();
+  if (currentSearch.length < 3) {
+    renderPokemonCards(allPokemons);
+    return;
+  }
   const filtered = [];
-
-  for (let i = 0; i < allPokemonData.length; i++) {
-    if (allPokemonData[i].name.toLowerCase().includes(search)) {
-      filtered.push(allPokemonData[i]);
+  for (let i = 0; i < allPokemons.length; i++) {
+    if (allPokemons[i].name.toLowerCase().includes(currentSearch)) {
+      filtered.push(allPokemons[i]);
     }
   }
-
-  renderPkmCards(filtered);
+  renderPokemonCards(filtered);
 }
 
 function showDetails(id) {
-  let pkm = null;
-
-  for (let i = 0; i < allPokemonData.length; i++) {
-    if (allPokemonData[i].id === id) {
-      pkm = allPokemonData[i];
+  let pokemon = null;
+  for (let i = 0; i < allPokemons.length; i++) {
+    if (allPokemons[i].id === id) {
+      pokemon = allPokemons[i];
       break;
     }
   }
-
-  if (!pkm) return;
-
-  let typesHTML = "";
-  for (let j = 0; j < pkm.types.length; j++) {
-    const type = pkm.types[j];
-    const icon = typeIcons[type] || type;
-    typesHTML += `<span class="type ${type}">${icon}</span>`;
+  if (!pokemon) return;
+  let typeHTML = "";
+  for (let t = 0; t < pokemon.types.length; t++) {
+    const type = pokemon.types[t];
+    typeHTML += `<span class="type-badge ${type}">${typeIcons[type] || type}</span>`;
   }
-
   const detail = document.getElementById("detail_content");
   detail.innerHTML = `
-  <div class="detail-header ${pkm.types[0]}-bg">
-    <h2>${pkm.name}</h2>
-  </div>
-  <img class="detail-img" src="${pkm.image}" alt="${pkm.name}" />
-  <div class="detail-types">
-    ${pkm.types.map(t => `<span class="type-badge ${t}">${typeIcons[t] || t}</span>`).join('')}
-  </div>
-  <div class="detail-stats">
-    <div class="stat-box">❤️ HP: ${pkm.hp}</div>
-    <div class="stat-box">💪 Attack: ${pkm.attack}</div>
-  </div>
-  <p class="description">${pkm.description}</p>
-  <p class="pkm-id">#${pkm.id}</p>
-`;
-
+    <div class="detail-header ${pokemon.types[0]}-bg"><h2>${pokemon.name}</h2></div>
+    <img class="detail-img" src="${pokemon.image}" alt="${pokemon.name}">
+    <div class="detail-types">${typeHTML}</div>
+    <div class="detail-stats">
+      <div class="stat-box">❤️ HP: ${pokemon.hp}</div>
+      <div class="stat-box">💪 Attack: ${pokemon.attack}</div>
+    </div>
+    <p class="description">${pokemon.description}</p>
+    <p class="pkm-id">#${pokemon.id}</p>`;
   document.getElementById("detail_view_dialog").classList.remove("d_none");
 }
 
@@ -137,8 +150,8 @@ function closeDialog() {
   document.getElementById("detail_view_dialog").classList.add("d_none");
 }
 
-function capitalize(str) {
-  return str.charAt(0).toUpperCase() + str.slice(1);
+function capitalize(text) {
+  return text.charAt(0).toUpperCase() + text.slice(1);
 }
 
 function showLoadingSpinner() {
@@ -148,3 +161,15 @@ function showLoadingSpinner() {
 function hideLoadingSpinner() {
   document.getElementById("loading").classList.add("d_none");
 }
+
+window.onload = function () {
+  loadPokemons();
+
+  const input = document.querySelector('.main-header input');
+  input.addEventListener('input', function (event) {
+    filterPokemon(event.target.value);
+  });
+
+  const button = document.getElementById('load-more');
+  button.addEventListener('click', loadPokemons);
+};
