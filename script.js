@@ -27,7 +27,7 @@ function loadPokemons() {
       }, 3000);
     })
     .catch(function (error) {
-      console.error("Ошибка при загрузке покемонов:", error);
+      console.error("Error loading Pokémon:", error);
       hideLoadingSpinner();
     });
 }
