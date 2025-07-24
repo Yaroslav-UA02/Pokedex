@@ -15,6 +15,7 @@ let offset = 0;
 const limit = 20;
 let currentSearch = "";
 
+// Loads Pokemon data: list + detailed info, then renders them
 function loadPokemons() {
   showLoadingSpinner();
   fetchPokemonList()
@@ -32,6 +33,7 @@ function loadPokemons() {
     });
 }
 
+// Fetches a list of Pokemon with basic info (name + URL)
 function fetchPokemonList() {
   const url = `https://pokeapi.co/api/v2/pokemon?limit=${limit}&offset=${offset}`;
   return fetch(url)
@@ -42,6 +44,7 @@ function fetchPokemonList() {
     });
 }
 
+// Fetches full detailes (stats, types, image) for each Pokemon in the list
 function fetchPokemonDetails(pokemonList) {
   const detailedPromises = pokemonList.map((pokemon) => {
     return fetch(pokemon.url)
@@ -51,6 +54,7 @@ function fetchPokemonDetails(pokemonList) {
   return Promise.all(detailedPromises);
 }
 
+// Parses and structures a singel Pokemon's data info a usable object
 function parsePokemon(data) {
   const types = [];
   let hp = 0;
@@ -74,12 +78,14 @@ function parsePokemon(data) {
   };
 }
 
+// Adds newly loaded Pokemon to the global array
 function addPokemonsToList(newPokemons) {
   for (let i = 0; i < newPokemons.length; i++) {
     allPokemons.push(newPokemons[i]);
   }
 }
 
+// Decides what to render based on current search input
 function renderCurrentList() {
   if (currentSearch.length >= 3) {
     filterPokemon(currentSearch);
@@ -88,6 +94,7 @@ function renderCurrentList() {
   }
 }
 
+// Renders Pokemon cards (image, name, types) to the main container 
 function renderPokemonCards(pokemonArray) {
   const container = document.getElementById("content");
   container.innerHTML = "";
@@ -108,6 +115,7 @@ function renderPokemonCards(pokemonArray) {
   }
 }
 
+// Filters Pokemon list by name based on the search query
 function filterPokemon(query) {
   currentSearch = query.toLowerCase().trim();
   if (currentSearch.length < 3) {
@@ -123,6 +131,7 @@ function filterPokemon(query) {
   renderPokemonCards(filtered);
 }
 
+// Displays the detailed view of a selected Pokemon
 function showDetails(id) {
   let pokemon = null;
   for (let i = 0; i < allPokemons.length; i++) {
@@ -156,22 +165,27 @@ function showDetails(id) {
   document.getElementById("detail_view_dialog").classList.remove("d_none");
 }
 
+// Closes the detail view dialog
 function closeDialog() {
   document.getElementById("detail_view_dialog").classList.add("d_none");
 }
 
+// Capitalizes the first letter of a string 
 function capitalize(text) {
   return text.charAt(0).toUpperCase() + text.slice(1);
 }
 
+// Shows the loading spinner 
 function showLoadingSpinner() {
   document.getElementById("loading").classList.remove("d_none");
 }
 
+// Hides the loading spinner 
 function hideLoadingSpinner() {
   document.getElementById("loading").classList.add("d_none");
 }
 
+// Navigates to the previous or next Pokemon in the detail view 
 function navigatePokemon(currentId, direction) {
   let currentIndex = -1;
   for (let i = 0; i < allPokemons.length; i++) {
@@ -187,6 +201,7 @@ function navigatePokemon(currentId, direction) {
   }
 }
 
+// Initializes the app on page load: loads data and sets up event listeners 
 window.onload = function () {
   loadPokemons();
   const input = document.querySelector('.main-header input');
